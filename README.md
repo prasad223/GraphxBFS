@@ -3,7 +3,7 @@
 This is a simple implementation of performing Breadth First Search using GraphX library in Apache Spark
 
 
-Requirements:
+#Requirements:
 
 * Java - 1.7 / 1.8
 * Scala - 2.10 / 2.11
@@ -12,12 +12,13 @@ Requirements:
 * python - 2.7 ( tested on , should work on 3.x)
 
 
-SBT default packaging will not work , as scopt will not be added to the jar.
+sbt default packaging will not work , as scopt will not be added to the jar.
 Hence create a fat jar to include scopt
 
 sbt
 > assembly
 
+```
 Usage: <jar-file> [options]  
   
   -g <value> | --graphType <value>  
@@ -41,14 +42,14 @@ Usage: <jar-file> [options]
   --help  
         prints this usage text  
 
-
-GraphType values  
+```
+#GraphType values  
 * Star Graph   
 * Log Normal graph - Taken out of pregel paper (https://kowshik.github.io/JPregel/pregel_paper.pdf)  
 * RMAT graph - http://snap.stanford.edu/class/cs224w-readings/chakrabarti04rmat.pdf  
 * EdgeList - Custom user defined edge list ( each line of format : srcId dstId)  
   
-Partition Strategies that can be used  
+#Partition Strategies that can be used  
 * RandomVertexCut  
 * CanonicalRandomVertexCut  
 * EdgePartition1D  
