@@ -43,16 +43,16 @@ Usage: <jar-file> [options]
 
 
 GraphType values  
-	1) Star Graph   
-	2) Log Normal graph - Taken out of pregel paper (https://kowshik.github.io/JPregel/pregel_paper.pdf)  
-	3) RMAT graph - http://snap.stanford.edu/class/cs224w-readings/chakrabarti04rmat.pdf  
-	4) EdgeList - Custom user defined edge list ( each line of format : srcId dstId)  
+* Star Graph   
+* Log Normal graph - Taken out of pregel paper (https://kowshik.github.io/JPregel/pregel_paper.pdf)  
+* RMAT graph - http://snap.stanford.edu/class/cs224w-readings/chakrabarti04rmat.pdf  
+* EdgeList - Custom user defined edge list ( each line of format : srcId dstId)  
   
 Partition Strategies that can be used  
-	1) RandomVertexCut  
-	2) CanonicalRandomVertexCut  
-	3) EdgePartition1D  
-	4) EdgePartition2D  
+* RandomVertexCut  
+* CanonicalRandomVertexCut  
+* EdgePartition1D  
+* EdgePartition2D  
 
   
 
