@@ -1,2 +1,4 @@
 # GraphxBFS
-Performing BFS using Spark Graphx
+
+This is a simple implementation of performing Breadth First Search using GraphX library in Apache Spark
+
