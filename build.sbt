@@ -1,7 +1,6 @@
 import sbt._
 import Keys._
 
-scalaVersion := "2.11.7"
 name := "Graph-BFS"
 version := "1.0-SNAPSHOT"
 
