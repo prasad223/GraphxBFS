@@ -36,7 +36,7 @@ case class Config(
 	numVertices: Int = 100, 
 	numEdges:Int = 100, 
 	graphType:String  = "",
-	partitionCount: Int = -1,
+	partitionCount: Int = 0,
 	mu: Double =  4.0,
 	sigma: Double = 1.3,
 	seed: Long = 1,
@@ -179,7 +179,7 @@ object GraphBFS extends App{
    		sparkContext.getConf.getAll.foreach( con => log.info(logPrefix + "Conf: " + con))
 
    		log.info(logPrefix + "START:Time: " + Calendar.getInstance.getTime.toString)
-   		log.info(logPrefix +s" appName: ${sparkContext.appName}, appId: ${sparkContext.applicationId}, master:${sparkContext.master}")
+   		log.info(logPrefix +s" appName: ${sparkContext.appName}, appId: ${sparkContext.applicationId}, master:${sparkContext.master} , numPartitions: ${config.partitionCount}")
 		val partitionStrategy = PartitionStrategy.fromString(config.partitionStrategy)
 		val numPartitions: Int = if(config.partitionCount > 0) config.partitionCount else sparkContext.getConf.get("spark.default.parallelism").toInt
 		// Generating graph based on user configuration
