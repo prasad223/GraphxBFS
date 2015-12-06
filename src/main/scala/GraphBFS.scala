@@ -181,7 +181,7 @@ object GraphBFS extends App{
    		log.info(logPrefix + "START:Time: " + Calendar.getInstance.getTime.toString)
    		log.info(logPrefix +s" appName: ${sparkContext.appName}, appId: ${sparkContext.applicationId}, master:${sparkContext.master}")
 		val partitionStrategy = PartitionStrategy.fromString(config.partitionStrategy)
-		val partitionCount = if(config.partitionCount >= 0) config.partitionCount else sparkContext.getConf.get("spark.default.parallelism")
+		val numPartitions: Int = if(config.partitionCount > 0) config.partitionCount else sparkContext.getConf.get("spark.default.parallelism").toInt
 		// Generating graph based on user configuration
 		val graph = generateGraph(config, sparkContext)
 		graph.persist()
@@ -205,7 +205,7 @@ object GraphBFS extends App{
 		val graphMapTime = System.nanoTime()
 
 		// Graph with Root vertex marked as 0 and rest are marked as unvisited
-    	val initialGraph = graph.partitionBy(partitionStrategy, config.partitionCount).mapVertices((id, attr) => if (id == rootVertex) 0.0 else Double.PositiveInfinity)
+    	val initialGraph = graph.partitionBy(partitionStrategy, numPartitions).mapVertices((id, attr) => if (id == rootVertex) 0.0 else Double.PositiveInfinity)
     
     	// Unpersisting the previous graph and caching newly generated graph
     	graph.unpersist(blocking = false)		
