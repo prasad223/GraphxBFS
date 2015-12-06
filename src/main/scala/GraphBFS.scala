@@ -198,7 +198,7 @@ object GraphBFS extends App{
    		val eCount = graph.edges.count 
 		val ePartitions = graph.edges.partitions.size
 
-		val master = "localhost" //sparkContext.master.trim.split(":")(1).replace("//","")
+		val master = sparkContext.master.trim.split(":")(1).replace("//","")
 		
 		// Root vertex from which BFS is destined to start
 		val rootVertex: VertexId = graph.vertices.first()._1
