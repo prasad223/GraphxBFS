@@ -18,7 +18,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.graphx._
 import org.apache.spark.graphx.util._
 import org.apache.log4j.Logger
-import org.apache.spark.storage.StorageLevel._
+import org.apache.spark.storage._
 import sys.process._
 import java.io._
 import java.io.FileNotFoundException
@@ -36,7 +36,7 @@ case class Config(
 	numVertices: Int = 100, 
 	numEdges:Int = 100, 
 	graphType:String  = "",
-	partitionCount: Int = 0,
+	partitionCount: Int = -1,
 	mu: Double =  4.0,
 	sigma: Double = 1.3,
 	seed: Long = 1,
@@ -152,7 +152,7 @@ object GraphBFS extends App{
    			GraphGenerators.starGraph(sparkContext, config.numVertices)
    		}
    		else {
-   			GraphLoader.edgeListFile(sparkContext, config.edgeListFile)
+   			GraphLoader.edgeListFile(sparkContext, config.edgeListFile , edgeStorageLevel = StorageLevel.MEMORY_AND_DISK_SER,vertexStorageLevel = StorageLevel.MEMORY_AND_DISK_SER)
    		}
     }
 
@@ -181,10 +181,10 @@ object GraphBFS extends App{
    		log.info(logPrefix + "START:Time: " + Calendar.getInstance.getTime.toString)
    		log.info(logPrefix +s" appName: ${sparkContext.appName}, appId: ${sparkContext.applicationId}, master:${sparkContext.master}")
 		val partitionStrategy = PartitionStrategy.fromString(config.partitionStrategy)
-
+		val partitionCount = if(config.partitionCount >= 0) config.partitionCount else sparkContext.getConf.get("spark.default.parallelism")
 		// Generating graph based on user configuration
 		val graph = generateGraph(config, sparkContext)
-		graph.cache()
+		graph.persist()
 		
 		log.info(logPrefix + "LOAD:Time: "+calcTime(System.nanoTime, mainTime))
 		
@@ -209,7 +209,7 @@ object GraphBFS extends App{
     
     	// Unpersisting the previous graph and caching newly generated graph
     	graph.unpersist(blocking = false)		
-		initialGraph.cache()
+		initialGraph.persist()
 
 		log.info(logPrefix + "BFS root Vertex: " + rootVertex)
 		log.info(logPrefix +"MapVertices: Time: "+ calcTime(System.nanoTime, graphMapTime))
