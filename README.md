@@ -46,7 +46,7 @@ GraphType values
 	1) Star Graph 
 	2) Log Normal graph - Taken out of pregel paper (https://kowshik.github.io/JPregel/pregel_paper.pdf)
 	3) RMAT graph - http://snap.stanford.edu/class/cs224w-readings/chakrabarti04rmat.pdf
-	4) Custom user defined edge list ( each line of format : srcId dstId)
+	4) EdgeList - Custom user defined edge list ( each line of format : srcId dstId)
 
 Partition Strategies that can be used
 	1) RandomVertexCut
