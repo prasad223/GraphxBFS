@@ -240,8 +240,8 @@ object GraphBFS extends App{
 		val logMetricTime = System.nanoTime()
 
 		//Logging all the metrics required for evaluation
-		//val t = Process(metricsScript).!!
-		//log.info(logPrefix + s"Log metrics output: $t")
+		val metricProcess = Process(metricsScript).!!
+		log.info(logPrefix + s"Log metrics output: $metricProcess")
 		log.info(logPrefix + "Log Metrics: Time: "+ calcTime(System.nanoTime, logMetricTime))
 		log.info(logPrefix + "Total: Time: "+ calcTime(System.nanoTime, mainTime))
 		log.info(logPrefix + "END: Time: " + Calendar.getInstance.getTime.toString)
