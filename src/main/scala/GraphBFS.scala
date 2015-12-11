@@ -7,7 +7,6 @@
  *
 */
 
-package org.prasad.bfs
 
 /*
 Imports required for program Execution
@@ -18,7 +17,6 @@ import org.apache.spark.SparkConf
 import org.apache.spark.graphx._
 import org.apache.spark.graphx.util._
 import org.apache.log4j.Logger
-import org.apache.spark.storage._
 import sys.process._
 import java.io._
 import java.io.FileNotFoundException
@@ -56,7 +54,7 @@ case class Config(
 	*		Graphx has fixed the values for rmat{a-d} , 
 	*		if required the graph generator can be extended and implemented to take user required values
 	*/
-object GraphBFS extends App{
+class GraphBFS{
 
   /**
 	*   Parse the arguments and generate config object
@@ -97,7 +95,7 @@ object GraphBFS extends App{
    	 *	@tparam	msg 	- inbound message recieved during pregel iteration
    	 *	@return 		- min of attr and msg
    	 */
-   	def vprog(id: VertexId, attr: Double, msg: Double): Double = math.min(attr,msg) 
+   	val vprog = { (id: VertexId, attr: Double, msg: Double) => math.min(attr,msg) }
 
   /**
    	*	SendMessage function to be used by pregel API
@@ -106,7 +104,7 @@ object GraphBFS extends App{
    	* 	if both are visited or not visited then no action is performed
    	*	@return 	Iterator of vertexid and the message to be sent
    	*/
-   	def sendMessage(triplet: EdgeTriplet[Double, Int]) : Iterator[(VertexId, Double)] = {
+   	val sendMessage = { (triplet: EdgeTriplet[Double, Int]) =>
 		var iter:Iterator[(VertexId, Double)] = Iterator.empty
 		val isSrcMarked = triplet.srcAttr != Double.PositiveInfinity
 		val isDstMarked = triplet.dstAttr != Double.PositiveInfinity
@@ -126,7 +124,7 @@ object GraphBFS extends App{
     *	@tparam messages recieved by one vertex
     *	@return the min of messages
     */
-	def reduceMessage(a: Double, b: Double) = math.min(a,b)
+	val reduceMessage = { (a: Double, b: Double) => math.min(a,b) }
 
   /**
   	*	Utility function to calculate time difference and round off 
@@ -152,14 +150,14 @@ object GraphBFS extends App{
    			GraphGenerators.starGraph(sparkContext, config.numVertices)
    		}
    		else {
-   			GraphLoader.edgeListFile(sparkContext, config.edgeListFile , edgeStorageLevel = StorageLevel.MEMORY_AND_DISK_SER,vertexStorageLevel = StorageLevel.MEMORY_AND_DISK_SER)
+   			GraphLoader.edgeListFile(sparkContext, config.edgeListFile)
    		}
     }
 
   /**
   	* The entrypoint to the graph processing function
     */
-	override def main(args: Array[String]) {
+	def main(args: Array[String]) {
 
 		val mainTime = System.nanoTime()
 		val config: Config = parseArgs(args)
@@ -168,7 +166,7 @@ object GraphBFS extends App{
 		// Setting the appId based on type of graph specified
 		val appIdName =  config.graphType +"_"+timeStamp
 		
-		val sparkContext = new SparkContext(new SparkConf().set("spark.app.id",appIdName).setAppName(appIdName))
+		val sparkContext = new SparkContext(new SparkConf().setAppName(appIdName))
 		// Getting the log object
 		val log = Logger.getLogger(getClass.getName)
 		// Log prefix to identify the user generated logs
@@ -181,10 +179,11 @@ object GraphBFS extends App{
    		log.info(logPrefix + "START:Time: " + Calendar.getInstance.getTime.toString)
    		log.info(logPrefix +s" appName: ${sparkContext.appName}, appId: ${sparkContext.applicationId}, master:${sparkContext.master} , numPartitions: ${config.partitionCount}")
 		val partitionStrategy = PartitionStrategy.fromString(config.partitionStrategy)
-		val numPartitions: Int = if(config.partitionCount > 0) config.partitionCount else sparkContext.getConf.get("spark.default.parallelism").toInt
+		
 		// Generating graph based on user configuration
 		val graph = generateGraph(config, sparkContext)
-		graph.persist()
+		graph.cache()
+		val numPartitions: Int = if(config.partitionCount > 0) config.partitionCount else graph.edges.partitions.size
 		
 		log.info(logPrefix + "LOAD:Time: "+calcTime(System.nanoTime, mainTime))
 		
@@ -196,8 +195,7 @@ object GraphBFS extends App{
 		// Graph properties used for logging
 		val vCount = graph.vertices.count
    		val eCount = graph.edges.count 
-		val ePartitions = graph.edges.partitions.size
-
+		
 		val master = sparkContext.master.trim.split(":")(1).replace("//","")
 		
 		// Root vertex from which BFS is destined to start
@@ -209,7 +207,7 @@ object GraphBFS extends App{
     
     	// Unpersisting the previous graph and caching newly generated graph
     	graph.unpersist(blocking = false)		
-		initialGraph.persist()
+		initialGraph.cache()
 
 		log.info(logPrefix + "BFS root Vertex: " + rootVertex)
 		log.info(logPrefix +"MapVertices: Time: "+ calcTime(System.nanoTime, graphMapTime))
@@ -233,7 +231,7 @@ object GraphBFS extends App{
 		
 		log.info(logPrefix +"BFS: Time: "+ bfsTime)
 		//Generating a unique name for the metrics to be logged
-		val graphName = List(appIdName, config.partitionStrategy , vCount.toString, eCount.toString, ePartitions.toString,bfsTime.toString).mkString("_")
+		val graphName = List(appIdName, config.partitionStrategy , vCount.toString, eCount.toString, numPartitions.toString,bfsTime.toString).mkString("_")
 		val metricsScript = List("python",pythonScript,master,graphName,metricsJson).mkString(" ")
 
 		log.info(logPrefix + s"metricScript: $pythonScript, outputFile: $metricsJson , graphName: $graphName, master: $master, " )
@@ -246,4 +244,11 @@ object GraphBFS extends App{
 		log.info(logPrefix + "Total: Time: "+ calcTime(System.nanoTime, mainTime))
 		log.info(logPrefix + "END: Time: " + Calendar.getInstance.getTime.toString)
    }
+}
+
+object Driver extends App{
+	override def main(args: Array[String]) = {
+		val graph = new GraphBFS()
+		graph.main(args)
+	}
 }
